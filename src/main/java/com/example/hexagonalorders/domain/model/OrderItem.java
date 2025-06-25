@@ -5,16 +5,7 @@ import com.example.hexagonalorders.domain.model.valueobject.Quantity;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-/**
- * Core domain entity representing an OrderItem in the system.
- * This class is part of the domain layer and represents a line item within an Order.
- * It is independent of any infrastructure concerns.
- * 
- * An OrderItem consists of:
- * - A unique identifier
- * - A product number (as a value object)
- * - A quantity (as a value object)
- */
+
 public class OrderItem {
     private final ProductNumber productNumber;
     private final Quantity quantity;
@@ -47,5 +38,4 @@ public class OrderItem {
         return unitPrice;
     }
 
-    // equals, hashCode, and toString can be added as needed
 } 

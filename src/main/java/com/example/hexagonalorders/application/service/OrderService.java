@@ -6,6 +6,7 @@ import com.example.hexagonalorders.domain.port.in.OrderUseCase;
 import com.example.hexagonalorders.domain.port.out.OrderNumberGenerator;
 import com.example.hexagonalorders.domain.port.out.OrderRepository;
 import com.example.hexagonalorders.domain.service.OrderValidationService;
+import com.example.hexagonalorders.infrastructure.in.web.mapper.OrderMapper.OrderCreationData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -28,19 +29,23 @@ public class OrderService implements OrderUseCase {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public Order createOrder(Order order) {
+    public Order createOrder(OrderCreationData orderData) {
+        // Generate order number
+        OrderNumber orderNumber = orderNumberGenerator.generate();
+        
+        // Create order with generated number
+        Order order = new Order(
+            orderNumber,
+            orderData.getCustomerId(),
+            orderData.getOrderDate(),
+            orderData.getItems(),
+            orderData.getStatus()
+        );
+        
         // Validate the order using the domain service
         orderValidationService.validateOrder(order);
         
-        OrderNumber orderNumber = orderNumberGenerator.generate();
-        Order orderWithNumber = new Order(
-            orderNumber,
-            order.getCustomerId(),
-            order.getOrderDate(),
-            order.getItems(),
-            order.getStatus()
-        );
-        Order savedOrder = orderRepository.save(orderWithNumber);
+        Order savedOrder = orderRepository.save(order);
 
         // Publish domain events
         savedOrder.getDomainEvents().forEach(eventPublisher::publishEvent);
