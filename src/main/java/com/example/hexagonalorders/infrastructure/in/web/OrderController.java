@@ -34,8 +34,8 @@ public class OrderController {
     })
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
-        Order order = orderMapper.toDomain(orderDto);
-        Order savedOrder = orderUseCase.createOrder(order);
+        OrderMapper.OrderCreationData orderData = orderMapper.createOrderData(orderDto);
+        Order savedOrder = orderUseCase.createOrder(orderData);
         return ResponseEntity.ok(orderMapper.toDto(savedOrder));
     }
 

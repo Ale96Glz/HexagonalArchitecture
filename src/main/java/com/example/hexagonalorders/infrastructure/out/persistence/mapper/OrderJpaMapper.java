@@ -23,18 +23,19 @@ public class OrderJpaMapper {
         jpaEntity.setStatus(toJpaOrderStatus(order.getStatus()));
         
         List<OrderItemJpaEntity> items = order.getItems().stream()
-                .map(this::toJpaEntity)
+                .map(item -> toJpaEntity(item, jpaEntity))
                 .collect(Collectors.toList());
         jpaEntity.setItems(items);
         
         return jpaEntity;
     }
     
-    private OrderItemJpaEntity toJpaEntity(OrderItem item) {
+    private OrderItemJpaEntity toJpaEntity(OrderItem item, OrderJpaEntity order) {
         OrderItemJpaEntity jpaEntity = new OrderItemJpaEntity();
         jpaEntity.setProductNumber(item.getProductNumber().value());
         jpaEntity.setQuantity(item.getQuantity().value());
         jpaEntity.setUnitPrice(item.getUnitPrice());
+        jpaEntity.setOrder(order);
         return jpaEntity;
     }
     

@@ -52,16 +52,22 @@ public class OrderService implements OrderUseCase {
     public Order createOrder(Order order) {
         // Validate the order using the domain service
         orderValidationService.validateOrder(order);
-        
+       
         OrderNumber orderNumber = orderNumberGenerator.generate();
-        Order orderWithNumber = new Order(
+        
+        // Create order with generated number
+        Order order = new Order(
             orderNumber,
-            order.getCustomerId(),
-            order.getOrderDate(),
-            order.getItems(),
-            order.getStatus()
+            orderData.getCustomerId(),
+            orderData.getOrderDate(),
+            orderData.getItems(),
+            orderData.getStatus()
         );
-        Order savedOrder = orderRepository.save(orderWithNumber);
+        
+        // Validate the order using the domain service
+        orderValidationService.validateOrder(order);
+        
+        Order savedOrder = orderRepository.save(order);
 
         // Process domain events - publish internally and persist to outbox
         for (DomainEvent event : savedOrder.getDomainEvents()) {
