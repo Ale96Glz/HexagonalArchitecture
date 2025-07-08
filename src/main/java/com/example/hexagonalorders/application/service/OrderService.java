@@ -49,13 +49,10 @@ public class OrderService implements OrderUseCase {
 
     @Override
     @Transactional
-    public Order createOrder(Order order) {
-        // Validate the order using the domain service
-        orderValidationService.validateOrder(order);
-       
+    public Order createOrder(com.example.hexagonalorders.infrastructure.in.web.mapper.OrderMapper.OrderCreationData orderData) {
         OrderNumber orderNumber = orderNumberGenerator.generate();
-        
-        // Create order with generated number
+
+        // Crear la orden con el número generado y los datos recibidos
         Order order = new Order(
             orderNumber,
             orderData.getCustomerId(),
@@ -63,21 +60,18 @@ public class OrderService implements OrderUseCase {
             orderData.getItems(),
             orderData.getStatus()
         );
-        
-        // Validate the order using the domain service
+
+        // Validar la orden usando el servicio de dominio
         orderValidationService.validateOrder(order);
-        
+
         Order savedOrder = orderRepository.save(order);
 
-        // Process domain events - publish internally and persist to outbox
+        // Procesar eventos de dominio: publicar internamente y persistir en outbox
         for (DomainEvent event : savedOrder.getDomainEvents()) {
-            // Publish internally via Spring's event system
             eventPublisher.publishEvent(event);
-           
-            // Persist to outbox for reliable processing
             persistToOutbox(event, "Order", orderNumber.value());
         }
-       
+
         savedOrder.clearDomainEvents();
 
         return savedOrder;
