@@ -31,7 +31,15 @@ public class OrderItemDto {
         this.unitPrice = unitPrice;
     }
 
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
+    // Getters manuales para evitar problemas con Lombok
+    public Long getId() { return id; }
+    public String getProductNumber() { return productNumber; }
+    public Integer getQuantity() { return quantity; }
+    public BigDecimal getUnitPrice() { return unitPrice; }
+
+    // Setters manuales para evitar problemas con Lombok
+    public void setId(Long id) { this.id = id; }
+    public void setProductNumber(String productNumber) { this.productNumber = productNumber; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
 } 
