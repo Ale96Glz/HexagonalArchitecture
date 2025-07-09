@@ -1,27 +1,22 @@
 package com.example.hexagonalorders.domain.event;
 
 import com.example.hexagonalorders.domain.model.DeliveryStatus;
-import com.example.hexagonalorders.domain.model.valueobject.DeliveryId;
-
+/**
+ * Evento de dominio que se genera cuando cambia el estado de una entrega.
+ * Este evento representa un hecho significativo en el dominio de entregas.
+ */
 public class DeliveryStatusChangedEvent extends DomainEvent {
-    private final DeliveryId deliveryId;
-    private final DeliveryStatus oldStatus;
+    private final String deliveryId;
     private final DeliveryStatus newStatus;
 
-    public DeliveryStatusChangedEvent(DeliveryId deliveryId, DeliveryStatus oldStatus, DeliveryStatus newStatus) {
+    public DeliveryStatusChangedEvent(String deliveryId, DeliveryStatus newStatus) {
         this.deliveryId = deliveryId;
-        this.oldStatus = oldStatus;
         this.newStatus = newStatus;
     }
 
-    public DeliveryId getDeliveryId() {
+    public String getDeliveryId() {
         return deliveryId;
     }
-
-    public DeliveryStatus getOldStatus() {
-        return oldStatus;
-    }
-
     public DeliveryStatus getNewStatus() {
         return newStatus;
     }

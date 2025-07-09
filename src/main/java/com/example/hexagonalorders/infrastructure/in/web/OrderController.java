@@ -20,12 +20,17 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/orders")
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 @Tag(name = "Orders", description = "Order management API")
 public class OrderController {
 
     private final OrderUseCase orderUseCase;
     private final OrderMapper orderMapper;
+
+    public OrderController(OrderUseCase orderUseCase, OrderMapper orderMapper) {
+        this.orderUseCase = orderUseCase;
+        this.orderMapper = orderMapper;
+    }
 
     @Operation(summary = "Create a new order", description = "Creates a new order and returns the created order.")
     @ApiResponses({

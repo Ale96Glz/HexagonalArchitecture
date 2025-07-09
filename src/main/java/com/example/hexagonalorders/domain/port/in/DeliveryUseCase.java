@@ -1,47 +1,94 @@
 package com.example.hexagonalorders.domain.port.in;
 
 import com.example.hexagonalorders.domain.model.Delivery;
-import com.example.hexagonalorders.domain.model.DeliveryStatus;
 import com.example.hexagonalorders.domain.model.valueobject.DeliveryId;
-import com.example.hexagonalorders.domain.model.valueobject.RouteId;
-import com.example.hexagonalorders.domain.model.valueobject.DeliveryPersonId;
-import com.example.hexagonalorders.domain.model.valueobject.Address;
-import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
+import com.example.hexagonalorders.domain.model.valueobject.DeliveryDate;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Puerto de entrada que define el contrato para las operaciones de entrega.
+ * Esta interfaz representa las operaciones principales del negocio que se pueden realizar
+ * sobre las entregas, usando el lenguaje ubicuo del dominio de entregas.
+ */
 public interface DeliveryUseCase {
     
-    
-    Delivery createDelivery(DeliveryId deliveryId, RouteId routeId, DeliveryPersonId deliveryPersonId,
-                           Address deliveryAddress, OrderNumber orderNumber, LocalDateTime scheduledDate);
-    
-    Optional<Delivery> getDeliveryById(DeliveryId deliveryId);
-    
-    List<Delivery> getDeliveriesByRoute(RouteId routeId);
-    
-    List<Delivery> getDeliveriesByDeliveryPerson(DeliveryPersonId deliveryPersonId);
-    
-    List<Delivery> getDeliveriesByOrder(OrderNumber orderNumber);
-    List<Delivery> getDeliveriesByStatus(DeliveryStatus status);
-    
-    void updateDeliveryStatus(DeliveryId deliveryId, DeliveryStatus newStatus);
-    
-    void markDeliveryInTransit(DeliveryId deliveryId);
-    
-    void markDeliveryOutForDelivery(DeliveryId deliveryId);
-    
-    void markDeliveryDelivered(DeliveryId deliveryId);
-    
-    void markDeliveryFailed(DeliveryId deliveryId, String failureReason);
-    
-    void cancelDelivery(DeliveryId deliveryId, String cancellationReason);
-    
-    void addDeliveryNotes(DeliveryId deliveryId, String notes);
-    
-    List<Delivery> getOverdueDeliveries();
-    
-    List<Delivery> getDeliveriesByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+    /**
+     * Crea una nueva entrega para una orden.
+     * Esta acción representa la acción de negocio de crear una entrega.
+     * 
+     * @param delivery la entrega a crear
+     * @return la entrega creada
+     */
+    Delivery crearEntrega(Delivery delivery);
+
+    /**
+     * Programar una entrega para una fecha y hora específicas.
+     * Esta acción representa la acción de negocio de programar una entrega.
+     * 
+     * @param deliveryId el identificador de la entrega
+     * @param scheduledDate la nueva fecha programada
+     * @return la entrega actualizada
+     */
+    Delivery programarEntrega(DeliveryId deliveryId, DeliveryDate scheduledDate);
+
+    /**
+     * Confirma que una entrega está lista para recoger.
+     * Esta acción representa la acción de negocio de confirmar la preparación de la entrega.
+     * 
+     * @param deliveryId el identificador de la entrega
+     * @return la entrega actualizada
+     */
+    Delivery confirmarEntrega(DeliveryId deliveryId);
+
+    /**
+     * Inicia el proceso de entrega (marca como en tránsito).
+     * Esta acción representa la acción de negocio de iniciar la entrega.
+     * 
+     * @param deliveryId el identificador de la entrega
+     * @return la entrega actualizada
+     */
+    Delivery iniciarEntrega(DeliveryId deliveryId);
+
+    /**
+     * Completa el proceso de entrega.
+     * Esta acción representa la acción de negocio de completar una entrega.
+     * 
+     * @param deliveryId el identificador de la entrega
+     * @return la entrega actualizada
+     */
+    Delivery completarEntrega(DeliveryId deliveryId);
+
+    /**
+     * Cancela una entrega.
+     * Esta acción representa la acción de negocio de cancelar una entrega.
+     * 
+     * @param deliveryId el identificador de la entrega
+     * @return la entrega actualizada
+     */
+    Delivery cancelarEntrega(DeliveryId deliveryId);
+
+    /**
+     * Recupera una entrega por su identificador.
+     * 
+     * @param deliveryId el identificador de la entrega
+     * @return la entrega si se encuentra
+     */
+    Optional<Delivery> obtenerEntrega(DeliveryId deliveryId);
+
+    /**
+     * Recupera todas las entregas.
+     * 
+     * @return lista de todas las entregas
+     */
+    List<Delivery> obtenerTodasLasEntregas();
+
+    /**
+     * Recupera entregas por estado.
+     * 
+     * @param status el estado de la entrega por el que filtrar
+     * @return lista de entregas con el estado especificado
+     */
+    List<Delivery> obtenerEntregasPorEstado(String status);
 } 

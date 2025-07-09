@@ -4,98 +4,87 @@ import com.example.hexagonalorders.domain.event.DomainEvent;
 import com.example.hexagonalorders.domain.event.DeliveryCreatedEvent;
 import com.example.hexagonalorders.domain.event.DeliveryStatusChangedEvent;
 import com.example.hexagonalorders.domain.model.valueobject.DeliveryId;
-import com.example.hexagonalorders.domain.model.valueobject.RouteId;
-import com.example.hexagonalorders.domain.model.valueobject.DeliveryPersonId;
-import com.example.hexagonalorders.domain.model.valueobject.Address;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
+import com.example.hexagonalorders.domain.model.valueobject.DeliveryAddress;
+import com.example.hexagonalorders.domain.model.valueobject.DeliveryDate;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
+/**
+ * Aggregate root representing a Delivery in the delivery domain.
+ * This class encapsulates the business logic and rules related to deliveries.
+ * 
+ * A Delivery consists of:
+ * - A unique delivery identifier
+ * - An associated order number
+ * - Delivery address information
+ * - Scheduled delivery date
+ * - Current delivery status
+ * - Delivery notes
+ * - Domain events
+ */
 public class Delivery {
     private final DeliveryId deliveryId;
-    private final RouteId routeId;
-    private final DeliveryPersonId deliveryPersonId;
-    private final Address deliveryAddress;
     private final OrderNumber orderNumber;
-    private final LocalDateTime scheduledDate;
+    private final DeliveryAddress deliveryAddress;
+    private DeliveryDate scheduledDate;
     private DeliveryStatus status;
-    private LocalDateTime actualDeliveryDate;
-    private String notes;
+    private String deliveryNotes;
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
-    public Delivery(DeliveryId deliveryId, RouteId routeId, DeliveryPersonId deliveryPersonId, 
-                   Address deliveryAddress, OrderNumber orderNumber, LocalDateTime scheduledDate, 
-                   DeliveryStatus status) {
+    public Delivery(DeliveryId deliveryId, OrderNumber orderNumber, DeliveryAddress deliveryAddress, 
+                   DeliveryDate scheduledDate, DeliveryStatus status, String deliveryNotes) {
         if (deliveryId == null) {
-            throw new IllegalArgumentException("El ID de la entrega no puede ser nulo");
-        }
-        if (routeId == null) {
-            throw new IllegalArgumentException("La ruta no puede ser nula");
-        }
-        if (deliveryPersonId == null) {
-            throw new IllegalArgumentException("El ID del repartidor no puede ser nulo");
-        }
-        if (deliveryAddress == null) {
-            throw new IllegalArgumentException("La direccion de entrega no puede ser nula");
+            throw new IllegalArgumentException("Delivery ID cannot be null");
         }
         if (orderNumber == null) {
-            throw new IllegalArgumentException("El numero de orden no puede ser nulo");
+            throw new IllegalArgumentException("Order number cannot be null");
+        }
+        if (deliveryAddress == null) {
+            throw new IllegalArgumentException("Delivery address cannot be null");
         }
         if (scheduledDate == null) {
-            throw new IllegalArgumentException("La fecha de entrega no puede ser nula");
+            throw new IllegalArgumentException("Scheduled date cannot be null");
         }
         if (status == null) {
-            throw new IllegalArgumentException("El estado no puede ser nulo");
+            throw new IllegalArgumentException("Delivery status cannot be null");
         }
         
         this.deliveryId = deliveryId;
-        this.routeId = routeId;
-        this.deliveryPersonId = deliveryPersonId;
-        this.deliveryAddress = deliveryAddress;
         this.orderNumber = orderNumber;
+        this.deliveryAddress = deliveryAddress;
         this.scheduledDate = scheduledDate;
         this.status = status;
+        this.deliveryNotes = deliveryNotes;
         
-        domainEvents.add(new DeliveryCreatedEvent(deliveryId, routeId, deliveryPersonId));
+        // Add domain event for delivery creation
+        domainEvents.add(new DeliveryCreatedEvent(deliveryId.value(), orderNumber.value()));
     }
 
+    // Getters
     public DeliveryId getDeliveryId() {
         return deliveryId;
     }
-
-    public RouteId getRouteId() {
-        return routeId;
-    }
-
-    public DeliveryPersonId getDeliveryPersonId() {
-        return deliveryPersonId;
-    }
-
-    public Address getDeliveryAddress() {
-        return deliveryAddress;
-    }
-
     public OrderNumber getOrderNumber() {
         return orderNumber;
     }
 
-    public LocalDateTime getScheduledDate() {
+    public DeliveryAddress getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public DeliveryDate getScheduledDate() {
         return scheduledDate;
     }
 
     public DeliveryStatus getStatus() {
         return status;
     }
-
-    public LocalDateTime getActualDeliveryDate() {
-        return actualDeliveryDate;
-    }
-
-    public String getNotes() {
-        return notes;
+    public String getDeliveryNotes() {
+        return deliveryNotes;
     }
 
     public List<DomainEvent> getDomainEvents() {
@@ -105,87 +94,96 @@ public class Delivery {
     public void clearDomainEvents() {
         domainEvents.clear();
     }
-
-    public void updateStatus(DeliveryStatus newStatus) {
-        if (newStatus == null) {
-            throw new IllegalArgumentException("El nuevo estado no puede ser nulo");
+    /**
+     * Schedules the delivery for a specific date and time.
+     * This represents the business action of scheduling a delivery.
+     */
+    public void scheduleDelivery(DeliveryDate newScheduledDate) {
+        if (newScheduledDate == null) {
+            throw new IllegalArgumentException("Scheduled date cannot be null");
         }
         
-        DeliveryStatus oldStatus = this.status;
-        this.status = newStatus;
-        
-        if (newStatus == DeliveryStatus.DELIVERED && this.actualDeliveryDate == null) {
-            this.actualDeliveryDate = LocalDateTime.now();
+        if (status == DeliveryStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot schedule a cancelled delivery");
         }
         
-        domainEvents.add(new DeliveryStatusChangedEvent(deliveryId, oldStatus, newStatus));
+        this.scheduledDate = newScheduledDate;
+        this.status = DeliveryStatus.SCHEDULED;
+        
+        domainEvents.add(new DeliveryStatusChangedEvent(deliveryId.value(), status));
     }
 
-    public void markInTransit() {
-        if (status != DeliveryStatus.SCHEDULED) {
-            throw new IllegalStateException("La entrega debe estar en estado SCHEDULED para ser marcada como en transito");
+    /**
+     * Confirms the delivery is ready for pickup.
+     * This represents the business action of confirming delivery preparation.
+     */
+    public void confirmDelivery() {
+        if (status == DeliveryStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot confirm a cancelled delivery");
         }
-        updateStatus(DeliveryStatus.IN_TRANSIT);
+        
+        this.status = DeliveryStatus.CONFIRMED;
+        domainEvents.add(new DeliveryStatusChangedEvent(deliveryId.value(), status));
     }
 
+    /**
+     * Marks the delivery as in transit.
+     * This represents the business action of starting the delivery process.
+     */
+    public void startDelivery() {
+        if (status != DeliveryStatus.CONFIRMED) {
+            throw new IllegalStateException("Delivery must be confirmed before starting");
+        }
+        
+        this.status = DeliveryStatus.IN_TRANSIT;
+        domainEvents.add(new DeliveryStatusChangedEvent(deliveryId.value(), status));
+    }
 
-    public void markOutForDelivery() {
+    /**
+     * Marks the delivery as completed.
+     * This represents the business action of completing the delivery.
+     */
+    public void completeDelivery() {
         if (status != DeliveryStatus.IN_TRANSIT) {
-            throw new IllegalStateException("La entrega debe estar en estado IN_TRANSIT para ser marcada como fuera para entrega");
+            throw new IllegalStateException("Delivery must be in transit before completing");
         }
-        updateStatus(DeliveryStatus.OUT_FOR_DELIVERY);
+        
+        this.status = DeliveryStatus.COMPLETED;
+        domainEvents.add(new DeliveryStatusChangedEvent(deliveryId.value(), status));
     }
 
-    public void markDelivered() {
-        if (status != DeliveryStatus.OUT_FOR_DELIVERY) {
-            throw new IllegalStateException("La entrega debe estar en estado OUT_FOR_DELIVERY para ser marcada como entregada");
+    /**
+     * Cancels the delivery.
+     * This represents the business action of cancelling a delivery.
+     */
+    public void cancelDelivery() {
+        if (status == DeliveryStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot cancel a completed delivery");
         }
-        updateStatus(DeliveryStatus.DELIVERED);
+        
+        this.status = DeliveryStatus.CANCELLED;
+        domainEvents.add(new DeliveryStatusChangedEvent(deliveryId.value(), status));
     }
 
-
-    public void markFailed(String failureReason) {
-        if (status != DeliveryStatus.OUT_FOR_DELIVERY && status != DeliveryStatus.IN_TRANSIT) {
-            throw new IllegalStateException("La entrega debe estar en estado OUT_FOR_DELIVERY o IN_TRANSIT para ser marcada como fallida");
-        }
-        this.notes = failureReason;
-        updateStatus(DeliveryStatus.FAILED);
+    /**
+     * Updates delivery notes.
+     * This represents the business action of adding delivery information.
+     */
+    public void updateDeliveryNotes(String notes) {
+        this.deliveryNotes = notes;
     }
 
-    public void cancel(String cancellationReason) {
-        if (status == DeliveryStatus.DELIVERED || status == DeliveryStatus.CANCELLED) {
-            throw new IllegalStateException("No se puede cancelar una entrega que ya ha sido entregada o cancelada");
-        }
-        this.notes = cancellationReason;
-        updateStatus(DeliveryStatus.CANCELLED);
+    /**
+     * Checks if the delivery can be cancelled.
+     */
+    public boolean canBeCancelled() {
+        return status != DeliveryStatus.COMPLETED && status != DeliveryStatus.CANCELLED;
     }
 
-
-    public void addNotes(String notes) {
-        if (notes == null || notes.trim().isEmpty()) {
-            throw new IllegalArgumentException("Las notas no pueden ser nulas o vacias");
-        }
-        this.notes = notes;
-    }
-
-    public boolean isOverdue() {
-        return status != DeliveryStatus.DELIVERED && 
-               status != DeliveryStatus.CANCELLED && 
-               status != DeliveryStatus.FAILED &&
-               LocalDateTime.now().isAfter(scheduledDate);
-    }
-
-    public boolean canBeReassigned() {
-        return status == DeliveryStatus.SCHEDULED || status == DeliveryStatus.IN_TRANSIT;
-    }
-
-
-    public void reassignTo(DeliveryPersonId newDeliveryPersonId) {
-        if (newDeliveryPersonId == null) {
-            throw new IllegalArgumentException("El ID del repartidor no puede ser nulo");
-        }
-        if (!canBeReassigned()) {
-            throw new IllegalStateException("La entrega no puede ser reasignada en el estado actual: " + status);
-        }
+    /**
+     * Checks if the delivery is active (not cancelled or completed).
+     */
+    public boolean isActive() {
+        return status != DeliveryStatus.CANCELLED && status != DeliveryStatus.COMPLETED;
     }
 } 

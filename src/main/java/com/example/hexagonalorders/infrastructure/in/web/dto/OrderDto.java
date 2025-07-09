@@ -39,24 +39,19 @@ public class OrderDto {
         this.items = items;
         this.status = status;
     }
+    // Getters manuales para evitar problemas con Lombok
+    public Long getId() { return id; }
+    public String getOrderNumber() { return orderNumber; }
+    public String getCustomerId() { return customerId; }
+    public LocalDateTime getOrderDate() { return orderDate; }
+    public List<OrderItemDto> getItems() { return items; }
+    public String getStatus() { return status; }
 
-    public String getOrderNumber() {
-        return orderNumber;
-    }
-
-    public String getCustomerId() {
-        return customerId;
-    }
-    
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
-    
-    public List<OrderItemDto> getItems() {
-        return items;
-    }
-    
-    public String getStatus() {
-        return status;
-    }
+    // Setters manuales para evitar problemas con Lombok
+    public void setId(Long id) { this.id = id; }
+    public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
+    public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }
+    public void setItems(List<OrderItemDto> items) { this.items = items; }
+    public void setStatus(String status) { this.status = status; }
 } 

@@ -11,8 +11,7 @@ import com.example.hexagonalorders.domain.port.out.OutboxRepository;
 import com.example.hexagonalorders.domain.service.OrderValidationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,6 +24,8 @@ import java.util.UUID;
  * - Coordinating between domain objects and services
  * - Managing transactions and use case flow
  */
+@Service
+// @RequiredArgsConstructor
 public class OrderService implements OrderUseCase {
     private final OrderRepository orderRepository;
     private final OrderNumberGenerator orderNumberGenerator;
@@ -45,6 +46,16 @@ public class OrderService implements OrderUseCase {
         this.eventPublisher = eventPublisher;
         this.outboxRepository = outboxRepository;
         this.objectMapper = objectMapper;
+    }
+
+    public OrderService(OrderRepository orderRepository,
+                        OrderNumberGenerator orderNumberGenerator,
+                        OrderValidationService orderValidationService,
+                        ApplicationEventPublisher eventPublisher) {
+        this.orderRepository = orderRepository;
+        this.orderNumberGenerator = orderNumberGenerator;
+        this.orderValidationService = orderValidationService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override

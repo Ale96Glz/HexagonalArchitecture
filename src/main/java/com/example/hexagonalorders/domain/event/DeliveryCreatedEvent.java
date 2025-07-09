@@ -1,29 +1,22 @@
 package com.example.hexagonalorders.domain.event;
-
-import com.example.hexagonalorders.domain.model.valueobject.DeliveryId;
-import com.example.hexagonalorders.domain.model.valueobject.RouteId;
-import com.example.hexagonalorders.domain.model.valueobject.DeliveryPersonId;
-
+/**
+ * Evento de dominio que se genera cuando se crea una nueva entrega.
+ * Este evento representa un hecho significativo en el dominio de entregas.
+ */
 public class DeliveryCreatedEvent extends DomainEvent {
-    private final DeliveryId deliveryId;
-    private final RouteId routeId;
-    private final DeliveryPersonId deliveryPersonId;
+    private final String deliveryId;
+    private final String orderNumber;
 
-    public DeliveryCreatedEvent(DeliveryId deliveryId, RouteId routeId, DeliveryPersonId deliveryPersonId) {
+    public DeliveryCreatedEvent(String deliveryId, String orderNumber) {
         this.deliveryId = deliveryId;
-        this.routeId = routeId;
-        this.deliveryPersonId = deliveryPersonId;
+        this.orderNumber = orderNumber;
     }
 
-    public DeliveryId getDeliveryId() {
+    public String getDeliveryId() {
         return deliveryId;
     }
 
-    public RouteId getRouteId() {
-        return routeId;
-    }
-
-    public DeliveryPersonId getDeliveryPersonId() {
-        return deliveryPersonId;
+    public String getOrderNumber() {
+        return orderNumber;
     }
 } 
