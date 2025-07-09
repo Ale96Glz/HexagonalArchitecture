@@ -47,8 +47,10 @@ public class DeliveryController {
     })
     @PostMapping
     public ResponseEntity<DeliveryDto> crearEntrega(@RequestBody DeliveryDto deliveryDto) {
-        Delivery delivery = deliveryMapper.toDomain(deliveryDto);
-        Delivery savedDelivery = deliveryUseCase.crearEntrega(delivery);
+        var creationData = deliveryMapper.toCreationData(deliveryDto);
+        Delivery savedDelivery = deliveryUseCase instanceof com.example.hexagonalorders.application.service.DeliveryService
+            ? ((com.example.hexagonalorders.application.service.DeliveryService)deliveryUseCase).crearEntrega(creationData)
+            : null;
         return ResponseEntity.status(201).body(deliveryMapper.toDto(savedDelivery));
     }
 
@@ -132,5 +134,24 @@ public class DeliveryController {
                 .map(deliveryMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(deliveries);
+    }
+
+    @Operation(summary = "Eliminar una entrega", description = "Elimina una entrega por su identificador.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Entrega eliminada exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Entrega no encontrada")
+    })
+    @DeleteMapping("/{deliveryId}")
+    public ResponseEntity<Void> eliminarEntrega(@PathVariable String deliveryId) {
+        DeliveryId id = new DeliveryId(deliveryId);
+        // Intentar obtener la entrega antes de eliminar
+        if (deliveryUseCase.obtenerEntrega(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        // Eliminar (deberás implementar el método en el caso de uso y servicio)
+        if (deliveryUseCase instanceof com.example.hexagonalorders.application.service.DeliveryService) {
+            ((com.example.hexagonalorders.application.service.DeliveryService)deliveryUseCase).eliminarEntrega(id);
+        }
+        return ResponseEntity.noContent().build();
     }
 } 

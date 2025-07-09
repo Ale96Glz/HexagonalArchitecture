@@ -8,6 +8,7 @@ import com.example.hexagonalorders.domain.model.valueobject.Quantity;
 import com.example.hexagonalorders.domain.model.OrderStatus;
 import com.example.hexagonalorders.infrastructure.in.web.dto.OrderDto;
 import com.example.hexagonalorders.infrastructure.in.web.dto.OrderItemDto;
+import com.example.hexagonalorders.infrastructure.in.web.dto.OrderResponseDto;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -22,17 +23,11 @@ import java.util.stream.Collectors;
 @Component
 public class OrderMapper {
     
-    public OrderDto toDto(Order order) {
+    public OrderResponseDto toResponseDto(Order order, Long id) {
         if (order == null) {
             return null;
         }
-        return new OrderDto(
-            order.getOrderNumber().value(),
-            order.getCustomerId(),
-            order.getOrderDate(),
-            toItemDtos(order.getItems()),
-            order.getStatus().name()
-        );
+        return new OrderResponseDto(order, id);
     }
     
     public Order toDomain(OrderDto dto) {
@@ -104,26 +99,6 @@ public class OrderMapper {
         public LocalDateTime getOrderDate() { return orderDate; }
         public List<OrderItem> getItems() { return items; }
         public OrderStatus getStatus() { return status; }
-    }
-    
-    private List<OrderItemDto> toItemDtos(List<OrderItem> items) {
-        if (items == null) {
-            return null;
-        }
-        return items.stream()
-                .map(this::toItemDto)
-                .collect(Collectors.toList());
-    }
-    
-    private OrderItemDto toItemDto(OrderItem item) {
-        if (item == null) {
-            return null;
-        }
-        return new OrderItemDto(
-            item.getProductNumber().value(),
-            item.getQuantity().value(),
-            item.getUnitPrice()
-        );
     }
     
     private List<OrderItem> toDomainItems(List<OrderItemDto> itemDtos) {

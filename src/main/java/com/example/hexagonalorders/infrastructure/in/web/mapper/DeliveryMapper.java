@@ -36,8 +36,11 @@ public class DeliveryMapper {
         if (dto == null) {
             return null;
         }
+        DeliveryId deliveryId = (dto.getDeliveryId() != null && !dto.getDeliveryId().isEmpty())
+            ? new DeliveryId(dto.getDeliveryId())
+            : null;
         return new Delivery(
-            new DeliveryId(dto.getDeliveryId()),
+            deliveryId,
             new OrderNumber(dto.getOrderNumber()),
             toDomainAddress(dto.getDeliveryAddress()),
             new DeliveryDate(dto.getScheduledDate()),
@@ -69,6 +72,38 @@ public class DeliveryMapper {
             dto.getState(),
             dto.getPostalCode(),
             dto.getCountry()
+        );
+    }
+
+    public static class DeliveryCreationData {
+        private final String orderNumber;
+        private final DeliveryAddress deliveryAddress;
+        private final DeliveryDate scheduledDate;
+        private final DeliveryStatus status;
+        private final String deliveryNotes;
+
+        public DeliveryCreationData(String orderNumber, DeliveryAddress deliveryAddress, DeliveryDate scheduledDate, DeliveryStatus status, String deliveryNotes) {
+            this.orderNumber = orderNumber;
+            this.deliveryAddress = deliveryAddress;
+            this.scheduledDate = scheduledDate;
+            this.status = status;
+            this.deliveryNotes = deliveryNotes;
+        }
+        public String getOrderNumber() { return orderNumber; }
+        public DeliveryAddress getDeliveryAddress() { return deliveryAddress; }
+        public DeliveryDate getScheduledDate() { return scheduledDate; }
+        public DeliveryStatus getStatus() { return status; }
+        public String getDeliveryNotes() { return deliveryNotes; }
+    }
+
+    public DeliveryCreationData toCreationData(DeliveryDto dto) {
+        if (dto == null) return null;
+        return new DeliveryCreationData(
+            dto.getOrderNumber(),
+            toDomainAddress(dto.getDeliveryAddress()),
+            new DeliveryDate(dto.getScheduledDate()),
+            DeliveryStatus.valueOf(dto.getStatus()),
+            dto.getDeliveryNotes()
         );
     }
 } 

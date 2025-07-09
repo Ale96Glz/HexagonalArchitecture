@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Servicio de aplicación que implementa los casos de uso de entrega.
@@ -27,6 +28,19 @@ public class DeliveryService implements DeliveryUseCase {
 
     @Override
     public Delivery crearEntrega(Delivery delivery) {
+        throw new UnsupportedOperationException("Usa crearEntrega(DeliveryCreationData) para crear entregas correctamente.");
+    }
+
+    public Delivery crearEntrega(com.example.hexagonalorders.infrastructure.in.web.mapper.DeliveryMapper.DeliveryCreationData data) {
+        DeliveryId id = new DeliveryId(UUID.randomUUID().toString());
+        Delivery delivery = new Delivery(
+            id,
+            new com.example.hexagonalorders.domain.model.valueobject.OrderNumber(data.getOrderNumber()),
+            data.getDeliveryAddress(),
+            data.getScheduledDate(),
+            data.getStatus(),
+            data.getDeliveryNotes()
+        );
         Delivery savedDelivery = deliveryRepository.save(delivery);
         savedDelivery.getDomainEvents().forEach(event -> {
             System.out.println("Domain event published: " + event.getClass().getSimpleName());
@@ -92,6 +106,10 @@ public class DeliveryService implements DeliveryUseCase {
             System.out.println("Domain event published: " + event.getClass().getSimpleName());
         });
         return updatedDelivery;
+    }
+
+    public void eliminarEntrega(com.example.hexagonalorders.domain.model.valueobject.DeliveryId deliveryId) {
+        deliveryRepository.deleteById(deliveryId);
     }
 
     @Override

@@ -3,24 +3,22 @@ package com.example.hexagonalorders.infrastructure.out.persistence.repository;
 import com.example.hexagonalorders.domain.model.Delivery;
 import com.example.hexagonalorders.domain.model.DeliveryStatus;
 import com.example.hexagonalorders.domain.model.valueobject.DeliveryId;
-import com.example.hexagonalorders.domain.model.valueobject.DeliveryPersonId;
-import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
-import com.example.hexagonalorders.domain.model.valueobject.RouteId;
 import com.example.hexagonalorders.domain.port.out.DeliveryRepository;
-import com.example.hexagonalorders.infrastructure.out.persistence.mapper.DeliveryMapper;
+import com.example.hexagonalorders.infrastructure.out.persistence.mapper.DeliveryPersistenceMapper;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
+@Primary
 public class DeliveryRepositoryAdapter implements DeliveryRepository {
     
     private final DeliveryJpaRepository jpaRepository;
-    private final DeliveryMapper mapper;
+    private final DeliveryPersistenceMapper mapper;
     
-    public DeliveryRepositoryAdapter(DeliveryJpaRepository jpaRepository, DeliveryMapper mapper) {
+    public DeliveryRepositoryAdapter(DeliveryJpaRepository jpaRepository, DeliveryPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }
@@ -39,20 +37,8 @@ public class DeliveryRepositoryAdapter implements DeliveryRepository {
     }
     
     @Override
-    public List<Delivery> findByRouteId(RouteId routeId) {
-        var entities = jpaRepository.findByRouteId(routeId.value());
-        return mapper.toDomainList(entities);
-    }
-    
-    @Override
-    public List<Delivery> findByDeliveryPersonId(DeliveryPersonId deliveryPersonId) {
-        var entities = jpaRepository.findByDeliveryPersonId(deliveryPersonId.value());
-        return mapper.toDomainList(entities);
-    }
-    
-    @Override
-    public List<Delivery> findByOrderNumber(OrderNumber orderNumber) {
-        var entities = jpaRepository.findByOrderNumber(orderNumber.value());
+    public List<Delivery> findAll() {
+        var entities = jpaRepository.findAll();
         return mapper.toDomainList(entities);
     }
     
@@ -63,35 +49,8 @@ public class DeliveryRepositoryAdapter implements DeliveryRepository {
     }
     
     @Override
-    public List<Delivery> findByScheduledDateBetween(LocalDateTime startDate, LocalDateTime endDate) {
-        var entities = jpaRepository.findByScheduledDateBetween(startDate, endDate);
-        return mapper.toDomainList(entities);
-    }
-    
-    @Override
-    public List<Delivery> findOverdueDeliveries() {
-        var entities = jpaRepository.findOverdueDeliveries(LocalDateTime.now());
-        return mapper.toDomainList(entities);
-    }
-    
-    @Override
-    public void delete(DeliveryId deliveryId) {
+    public void deleteById(DeliveryId deliveryId) {
         jpaRepository.findByDeliveryId(deliveryId.value())
             .ifPresent(jpaRepository::delete);
-    }
-    
-    @Override
-    public boolean existsById(DeliveryId deliveryId) {
-        return jpaRepository.existsByDeliveryId(deliveryId.value());
-    }
-    
-    @Override
-    public long count() {
-        return jpaRepository.count();
-    }
-    
-    @Override
-    public long countByStatus(DeliveryStatus status) {
-        return jpaRepository.countByStatus(status);
     }
 } 

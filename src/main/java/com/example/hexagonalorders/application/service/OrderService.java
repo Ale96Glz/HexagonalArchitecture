@@ -12,6 +12,7 @@ import com.example.hexagonalorders.domain.service.OrderValidationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,16 +49,6 @@ public class OrderService implements OrderUseCase {
         this.objectMapper = objectMapper;
     }
 
-    public OrderService(OrderRepository orderRepository,
-                        OrderNumberGenerator orderNumberGenerator,
-                        OrderValidationService orderValidationService,
-                        ApplicationEventPublisher eventPublisher) {
-        this.orderRepository = orderRepository;
-        this.orderNumberGenerator = orderNumberGenerator;
-        this.orderValidationService = orderValidationService;
-        this.eventPublisher = eventPublisher;
-    }
-
     @Override
     @Transactional
     public Order createOrder(com.example.hexagonalorders.infrastructure.in.web.mapper.OrderMapper.OrderCreationData orderData) {
@@ -75,7 +66,9 @@ public class OrderService implements OrderUseCase {
         // Validar la orden usando el servicio de dominio
         orderValidationService.validateOrder(order);
 
-        Order savedOrder = orderRepository.save(order);
+        // Usar el método que devuelve el id
+        var orderWithId = ((com.example.hexagonalorders.infrastructure.out.persistence.repository.OrderRepositoryAdapter) orderRepository).saveWithId(order);
+        Order savedOrder = orderWithId.getOrder();
 
         // Procesar eventos de dominio: publicar internamente y persistir en outbox
         for (DomainEvent event : savedOrder.getDomainEvents()) {
@@ -87,10 +80,45 @@ public class OrderService implements OrderUseCase {
 
         return savedOrder;
     }
+    
+    public com.example.hexagonalorders.infrastructure.out.persistence.repository.OrderRepositoryAdapter.OrderWithId createOrderWithId(com.example.hexagonalorders.infrastructure.in.web.mapper.OrderMapper.OrderCreationData orderData) {
+        OrderNumber orderNumber = orderNumberGenerator.generate();
+
+        // Crear la orden con el número generado y los datos recibidos
+        Order order = new Order(
+            orderNumber,
+            orderData.getCustomerId(),
+            orderData.getOrderDate(),
+            orderData.getItems(),
+            orderData.getStatus()
+        );
+
+        // Validar la orden usando el servicio de dominio
+        orderValidationService.validateOrder(order);
+
+        // Usar el método que devuelve el id
+        var orderWithId = ((com.example.hexagonalorders.infrastructure.out.persistence.repository.OrderRepositoryAdapter) orderRepository).saveWithId(order);
+        Order savedOrder = orderWithId.getOrder();
+
+        // Procesar eventos de dominio: publicar internamente y persistir en outbox
+        for (DomainEvent event : savedOrder.getDomainEvents()) {
+            eventPublisher.publishEvent(event);
+            persistToOutbox(event, "Order", orderNumber.value());
+        }
+
+        savedOrder.clearDomainEvents();
+
+        return orderWithId;
+    }
 
     @Override
     public Optional<Order> getOrder(OrderNumber orderNumber) {
         return orderRepository.findByOrderNumber(orderNumber);
+    }
+    
+    public Optional<com.example.hexagonalorders.infrastructure.out.persistence.repository.OrderRepositoryAdapter.OrderWithId> getOrderWithId(OrderNumber orderNumber) {
+        return ((com.example.hexagonalorders.infrastructure.out.persistence.repository.OrderRepositoryAdapter) orderRepository)
+            .findByOrderNumberWithId(orderNumber);
     }
 
     @Override

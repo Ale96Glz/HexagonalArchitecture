@@ -4,6 +4,7 @@ import com.example.hexagonalorders.domain.model.Order;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.port.in.OrderUseCase;
 import com.example.hexagonalorders.infrastructure.in.web.dto.OrderDto;
+import com.example.hexagonalorders.infrastructure.in.web.dto.OrderResponseDto;
 import com.example.hexagonalorders.infrastructure.in.web.mapper.OrderMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,10 +39,13 @@ public class OrderController {
         @ApiResponse(responseCode = "400", description = "Invalid input")
     })
     @PostMapping
-    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
+    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderDto orderDto) {
         OrderMapper.OrderCreationData orderData = orderMapper.createOrderData(orderDto);
-        Order savedOrder = orderUseCase.createOrder(orderData);
-        return ResponseEntity.ok(orderMapper.toDto(savedOrder));
+        
+        // Usar el método que devuelve el id
+        var orderWithId = ((com.example.hexagonalorders.application.service.OrderService) orderUseCase).createOrderWithId(orderData);
+        
+        return ResponseEntity.ok(orderMapper.toResponseDto(orderWithId.getOrder(), orderWithId.getId()));
     }
 
     @Operation(summary = "Get an order by order number", description = "Retrieves an order by its order number.")
@@ -50,11 +54,16 @@ public class OrderController {
         @ApiResponse(responseCode = "404", description = "Order not found")
     })
     @GetMapping("/{orderNumber}")
-    public ResponseEntity<OrderDto> getOrder(@PathVariable String orderNumber) {
-        return orderUseCase.getOrder(new OrderNumber(orderNumber))
-                .map(orderMapper::toDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<OrderResponseDto> getOrder(@PathVariable String orderNumber) {
+        // Usar el método que devuelve el id
+        var orderWithId = ((com.example.hexagonalorders.application.service.OrderService) orderUseCase)
+            .getOrderWithId(new OrderNumber(orderNumber));
+        
+        if (orderWithId.isPresent()) {
+            return ResponseEntity.ok(orderMapper.toResponseDto(orderWithId.get().getOrder(), orderWithId.get().getId()));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @Operation(summary = "Delete an order by order number", description = "Deletes an order by its order number.")

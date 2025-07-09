@@ -26,13 +26,24 @@ public class OrderRepositoryAdapter implements OrderRepository {
 
     @Override
     public Order save(Order order) {
-        return orderJpaMapper.toDomain(orderJpaRepository.save(orderJpaMapper.toJpaEntity(order)));
+        OrderJpaEntity savedEntity = orderJpaRepository.save(orderJpaMapper.toJpaEntity(order));
+        return orderJpaMapper.toDomain(savedEntity);
+    }
+    
+    public OrderWithId saveWithId(Order order) {
+        OrderJpaEntity savedEntity = orderJpaRepository.save(orderJpaMapper.toJpaEntity(order));
+        return new OrderWithId(orderJpaMapper.toDomain(savedEntity), savedEntity.getId());
     }
 
     @Override
     public Optional<Order> findByOrderNumber(OrderNumber orderNumber) {
         return orderJpaRepository.findByOrderNumber(orderNumber.value())
                 .map(orderJpaMapper::toDomain);
+    }
+    
+    public Optional<OrderWithId> findByOrderNumberWithId(OrderNumber orderNumber) {
+        return orderJpaRepository.findByOrderNumber(orderNumber.value())
+                .map(entity -> new OrderWithId(orderJpaMapper.toDomain(entity), entity.getId()));
     }
 
     @Override
@@ -41,9 +52,33 @@ public class OrderRepositoryAdapter implements OrderRepository {
                 .map(orderJpaMapper::toDomain)
                 .collect(Collectors.toList());
     }
+    
+    public List<OrderWithId> findAllWithId() {
+        return orderJpaRepository.findAll().stream()
+                .map(entity -> new OrderWithId(orderJpaMapper.toDomain(entity), entity.getId()))
+                .collect(Collectors.toList());
+    }
 
     @Override
     public void deleteByOrderNumber(OrderNumber orderNumber) {
         orderJpaRepository.deleteByOrderNumber(orderNumber.value());
+    }
+    
+    public static class OrderWithId {
+        private final Order order;
+        private final Long id;
+        
+        public OrderWithId(Order order, Long id) {
+            this.order = order;
+            this.id = id;
+        }
+        
+        public Order getOrder() {
+            return order;
+        }
+        
+        public Long getId() {
+            return id;
+        }
     }
 } 
