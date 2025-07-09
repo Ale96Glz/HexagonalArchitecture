@@ -3,7 +3,6 @@ package com.example.hexagonalorders.domain.port.out;
 import com.example.hexagonalorders.domain.model.Delivery;
 import com.example.hexagonalorders.domain.model.DeliveryStatus;
 import com.example.hexagonalorders.domain.model.valueobject.DeliveryId;
-
 import java.util.List;
 import java.util.Optional;
 

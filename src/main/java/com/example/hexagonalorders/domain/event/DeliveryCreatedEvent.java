@@ -1,5 +1,4 @@
 package com.example.hexagonalorders.domain.event;
-
 /**
  * Evento de dominio que se genera cuando se crea una nueva entrega.
  * Este evento representa un hecho significativo en el dominio de entregas.

@@ -30,7 +30,6 @@ public class OrderItemDto {
         this.quantity = quantity;
         this.unitPrice = unitPrice;
     }
-
     // Getters manuales para evitar problemas con Lombok
     public Long getId() { return id; }
     public String getProductNumber() { return productNumber; }

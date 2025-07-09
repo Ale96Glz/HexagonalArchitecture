@@ -8,11 +8,11 @@ import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.model.valueobject.DeliveryAddress;
 import com.example.hexagonalorders.domain.model.valueobject.DeliveryDate;
 
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 /**
  * Aggregate root representing a Delivery in the delivery domain.
  * This class encapsulates the business logic and rules related to deliveries.
@@ -68,7 +68,6 @@ public class Delivery {
     public DeliveryId getDeliveryId() {
         return deliveryId;
     }
-
     public OrderNumber getOrderNumber() {
         return orderNumber;
     }
@@ -84,7 +83,6 @@ public class Delivery {
     public DeliveryStatus getStatus() {
         return status;
     }
-
     public String getDeliveryNotes() {
         return deliveryNotes;
     }
@@ -96,7 +94,6 @@ public class Delivery {
     public void clearDomainEvents() {
         domainEvents.clear();
     }
-
     /**
      * Schedules the delivery for a specific date and time.
      * This represents the business action of scheduling a delivery.

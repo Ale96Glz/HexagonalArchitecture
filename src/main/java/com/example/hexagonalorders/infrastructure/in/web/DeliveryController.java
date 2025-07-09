@@ -133,6 +133,4 @@ public class DeliveryController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(deliveries);
     }
-
-
 } 

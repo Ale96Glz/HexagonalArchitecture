@@ -1,5 +1,4 @@
 package com.example.hexagonalorders.domain.model.valueobject;
-
 import java.util.Objects;
 
 /**

@@ -2,6 +2,7 @@ package com.example.hexagonalorders.domain.port.in;
 
 import com.example.hexagonalorders.domain.model.Order;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
+import com.example.hexagonalorders.infrastructure.in.web.mapper.OrderMapper.OrderCreationData;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,10 +15,10 @@ import java.util.Optional;
 public interface OrderUseCase {
     /**
      * Creates a new order
-     * @param order the order to create
+     * @param orderData the order data to create (without order number)
      * @return the created order
      */
-    Order createOrder(Order order);
+    Order createOrder(OrderCreationData orderData);
 
     /**
      * Retrieves an order by its order number
